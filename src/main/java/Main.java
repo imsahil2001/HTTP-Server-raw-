@@ -8,17 +8,17 @@ public class Main {
     System.out.println("Logs from your program will appear here!");
 
     // Uncomment this block to pass the first stage
-    //
-    // ServerSocket serverSocket = null;
-    // Socket clientSocket = null;
-    //
-    // try {
-    //   serverSocket = new ServerSocket(4221);
-    //   serverSocket.setReuseAddress(true);
-    //   clientSocket = serverSocket.accept(); // Wait for connection from client.
-    //   System.out.println("accepted new connection");
-    // } catch (IOException e) {
-    //   System.out.println("IOException: " + e.getMessage());
-    // }
+
+     ServerSocket serverSocket = null;
+     Socket clientSocket = null;
+
+     try {
+       serverSocket = new ServerSocket(4221);
+       serverSocket.setReuseAddress(true);
+       clientSocket = serverSocket.accept(); // Wait for connection from client.
+       System.out.println("accepted new connection");
+     } catch (IOException e) {
+       System.out.println("IOException: " + e.getMessage());
+     }
   }
 }
