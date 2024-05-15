@@ -34,7 +34,7 @@ public class Main {
            outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
        else if(URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
            String endpoint = URLS.ifContains(urlPath).getUrl().split("/")[1];
-           String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 3\r\n\r\n" + endpoint;
+           String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + endpoint.length() + "\r\n\r\n" + endpoint;
            outputStream.write(response.getBytes(StandardCharsets.UTF_8));
        }
        else
