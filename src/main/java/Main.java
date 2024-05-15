@@ -29,8 +29,14 @@ public class Main {
 
        OutputStream outputStream = clientSocket.getOutputStream();
        String urlPath = getHeaderData(clientSocket.getInputStream());
+
        if(URLS.checkUrl(urlPath) != null)
            outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
+       else if(URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
+           String endpoint = URLS.ifContains(urlPath).getUrl().split("/")[1];
+           String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 3\r\n\r\n" + endpoint;
+           outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+       }
        else
            outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
 
@@ -73,10 +79,11 @@ public class Main {
   /*
     Set of pre-existing hardcoded urls that supported by server
    */
-  public enum URLS{
+  public enum URLS {
+      ECHO_PAGE("/echo"),
       HOME_PAGE("/"),
       HOME_PAGE_1("");
-      private final String url;
+      private String url;
       URLS(String url) {
         this.url = url;
       }
@@ -86,6 +93,15 @@ public class Main {
       public static URLS checkUrl(String url){
           for (URLS value : values()) {
               if (value.getUrl().equals(url)) {
+                  return value;
+              }
+          }
+          return null;
+      }
+
+      public static URLS ifContains(String targetUrl){
+          for (URLS value : values()) {
+              if (targetUrl.contains(value.getUrl())){
                   return value;
               }
           }
