@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 
 public class Main {
     private static final int PORT = 4221;
+    public static final String HTTP_OK_Response = "HTTP/1.1 200 OK\r\n\r\n";
+    public static final String HTTP_NotFound_Response = "HTTP/1.1 200 OK\r\n\r\n";
   public static void main(String[] args) {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     System.out.println("Logs from your program will appear here!");
@@ -28,9 +30,9 @@ public class Main {
        OutputStream outputStream = clientSocket.getOutputStream();
        String urlPath = getHeaderData(clientSocket.getInputStream());
        if(URLS.checkUrl(urlPath) != null)
-           outputStream.write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+           outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
        else
-           outputStream.write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+           outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
 
        outputStream.flush();
        clientSocket.close();
