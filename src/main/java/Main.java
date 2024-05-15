@@ -28,17 +28,23 @@ public class Main {
         */
 
        OutputStream outputStream = clientSocket.getOutputStream();
-       String urlPath = getHeaderData(clientSocket.getInputStream());
+       String[] headerDataInParts = headerDataFromRequest(clientSocket.getInputStream());
+       String urlPath = headerDataInParts[0].split(" ")[1];
+       String userAgent = headerDataInParts[3].split(" ")[1];
 
-       if(URLS.checkUrl(urlPath) != null)
-           outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
-       else if(URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
-           String endpoint = urlPath.split("/")[2];
-           String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + endpoint.length() + "\r\n\r\n" + endpoint;
-           outputStream.write(response.getBytes(StandardCharsets.UTF_8));
-       }
-       else
-           outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
+         if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
+             String endpoint = urlPath.split("/")[2];
+             endpoint = sanitize(endpoint);
+             String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + endpoint.length() + "\r\n\r\n" + endpoint;
+             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+         } else if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.USER_AGENT.getUrl())) {
+             userAgent = sanitize(userAgent);
+             String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + userAgent.length() + "\r\n\r\n" + userAgent;
+             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+         } else if (URLS.checkUrl(urlPath) != null)
+             outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
+         else
+             outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
 
        outputStream.flush();
        clientSocket.close();
@@ -50,9 +56,9 @@ public class Main {
   /*
     Extacting and reading the header data of each request
    */
-  private static String getHeaderData(InputStream inputStream){
+  private static String[] headerDataFromRequest(InputStream inputStream){
       String rawheaderData = "";
-      String urlPath = null;
+      String[] headerDataInParts = null;
       try{
           int c;
           Reader reader = new InputStreamReader(inputStream);
@@ -63,11 +69,11 @@ public class Main {
                   break;
           }
           //Reading the headers of a request and extracting the method, url-path & http version
-          urlPath = rawheaderData.split("\n")[0].split(" ")[1];
+          headerDataInParts = rawheaderData.split("\n");
 
-          if(!urlPath.isEmpty())
-              return urlPath;
-          else throw new NullPointerException("Didn't find the path in the request");
+          if(headerDataInParts.length > 0)
+              return headerDataInParts;
+          else throw new NullPointerException("Error while parsing header data from request");
       }catch(NullPointerException nullEx){
           System.out.println("Exception occurred :: " + nullEx);
       }catch(Exception ex){
@@ -82,7 +88,8 @@ public class Main {
   public enum URLS {
       ECHO_PAGE("/echo"),
       HOME_PAGE("/"),
-      HOME_PAGE_1("");
+      HOME_PAGE_1(""),
+      USER_AGENT("/user-agent");
       private String url;
       URLS(String url) {
         this.url = url;
@@ -107,5 +114,9 @@ public class Main {
           }
           return null;
       }
+  }
+
+  private static String sanitize(String target){
+      return target.replaceAll("[\r\n]","");
   }
 }
