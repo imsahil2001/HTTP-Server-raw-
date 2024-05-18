@@ -2,11 +2,15 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Main {
     private static final int PORT = 4221;
     public static final String HTTP_OK_Response = "HTTP/1.1 200 OK\r\n\r\n";
     public static final String HTTP_NotFound_Response = "HTTP/1.1 404 Not Found\r\n\r\n";
+    public static final String USER_AGENT = "User-Agent:";
   public static void main(String[] args) {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     System.out.println("Logs from your program will appear here!");
@@ -28,9 +32,9 @@ public class Main {
         */
 
        OutputStream outputStream = clientSocket.getOutputStream();
-       String[] headerDataInParts = headerDataFromRequest(clientSocket.getInputStream());
-       String urlPath = headerDataInParts[0].split(" ")[1];
-       String userAgent = headerDataInParts[3].split(" ")[1];
+       HashMap<String, String> headerData = headerDataFromRequest(clientSocket.getInputStream());
+       String urlPath = headerData.get("GET");
+       String userAgent = headerData.get(USER_AGENT);
 
          if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
              String endpoint = urlPath.split("/")[2];
@@ -57,7 +61,7 @@ public class Main {
   /*
     Extacting and reading the header data of each request
    */
-  private static String[] headerDataFromRequest(InputStream inputStream){
+  private static HashMap<String, String> headerDataFromRequest(InputStream inputStream){
       String rawheaderData = "";
       String[] headerDataInParts = null;
       try{
@@ -72,8 +76,18 @@ public class Main {
           //Reading the headers of a request and extracting the method, url-path & http version
           headerDataInParts = rawheaderData.split("\n");
 
-          if(headerDataInParts.length > 0)
-              return headerDataInParts;
+          HashMap<String, String> HeaderData = new HashMap<>();
+          for(int i = 0; i < headerDataInParts.length; i++){
+              if(headerDataInParts[i].length() > 1){
+                  HeaderData.put(
+                          headerDataInParts[i].split(" ")[0],
+                          headerDataInParts[i].split(" ")[1]
+                  );
+              }
+          }
+
+          if(HeaderData.size() > 0)
+              return HeaderData;
           else throw new NullPointerException("Error while parsing header data from request");
       }catch(NullPointerException nullEx){
           System.out.println("Exception occurred :: " + nullEx);
