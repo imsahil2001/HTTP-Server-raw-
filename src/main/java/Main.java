@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
     private static final int PORT = 4221;
@@ -16,44 +18,54 @@ public class Main {
     System.out.println("Logs from your program will appear here!");
 
     // Uncomment this block to pass the first stage
-
+     ExecutorService executorService = Executors.newFixedThreadPool(10);
      ServerSocket serverSocket = null;
-     Socket clientSocket = null;
 
      try {
        serverSocket = new ServerSocket(PORT);
        serverSocket.setReuseAddress(true);
-       clientSocket = serverSocket.accept(); // Wait for connection from client.
-       System.out.println("accepted new connection");
+
+       while(true){
+           Socket clientSocket = serverSocket.accept(); // Wait for connection from client.
+           System.out.println("accepted new connection");
+           ClientHandler clientHandler = new ClientHandler(clientSocket);
+           executorService.execute(clientHandler);
+       }
 
        /*
         To write data to client when it requests to server
         OutputStream needed to be used to write the whole httpresponse set along with headers and body and write it to clientSocket
         */
 
-       OutputStream outputStream = clientSocket.getOutputStream();
-       HashMap<String, String> headerData = headerDataFromRequest(clientSocket.getInputStream());
-       String urlPath = headerData.get("GET");
-       String userAgent = headerData.get(USER_AGENT);
-
-         if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
-             String endpoint = urlPath.split("/")[2];
-             endpoint = sanitize(endpoint);
-             String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + endpoint.length() + "\r\n\r\n" + endpoint;
-             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
-         } else if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.USER_AGENT.getUrl())) {
-             userAgent = sanitize(userAgent);
-             String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + userAgent.length() + "\r\n\r\n" + userAgent;
-             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
-         } else if (URLS.checkUrl(urlPath) != null)
-             outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
-         else
-             outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
-
-       outputStream.flush();
-       clientSocket.close();
+//       OutputStream outputStream = clientSocket.getOutputStream();
+//       HashMap<String, String> headerData = headerDataFromRequest(clientSocket.getInputStream());
+//       String urlPath = headerData.get("GET");
+//       String userAgent = headerData.get(USER_AGENT);
+//
+//         if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.ECHO_PAGE.getUrl())) {
+//             String endpoint = urlPath.split("/")[2];
+//             endpoint = sanitize(endpoint);
+//             String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + endpoint.length() + "\r\n\r\n" + endpoint;
+//             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+//         } else if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.USER_AGENT.getUrl())) {
+//             userAgent = sanitize(userAgent);
+//             String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + userAgent.length() + "\r\n\r\n" + userAgent;
+//             outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+//         } else if (URLS.checkUrl(urlPath) != null)
+//             outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
+//         else
+//             outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
+//
+//       outputStream.flush();
+//       clientSocket.close();
      } catch (IOException e) {
        System.out.println("IOException: " + e.getMessage());
+     }finally {
+         try{
+             serverSocket.close();
+         }catch (Exception ex){
+
+         }
      }
   }
 
