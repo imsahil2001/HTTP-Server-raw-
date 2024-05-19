@@ -1,7 +1,4 @@
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -11,9 +8,11 @@ public class ClientHandler extends Thread {
     public static final String HTTP_NotFound_Response = "HTTP/1.1 404 Not Found\r\n\r\n";
     public static final String USER_AGENT = "User-Agent:";
     public Socket clientSocket;
+    public String[] args;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, String[] args) {
         this.clientSocket = socket;
+        this.args = args;
     }
 
     public ClientHandler(){}
@@ -39,6 +38,25 @@ public class ClientHandler extends Thread {
                 userAgent = sanitize(userAgent);
                 String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + userAgent.length() + "\r\n\r\n" + userAgent;
                 outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+            } else if (URLS.ifContains(urlPath) != null && urlPath.contains(URLS.FILES.getUrl())
+                    && args.length == 2 && args[0].equals("--directory")){
+
+                String fileName = urlPath.split("/")[2];
+                File file = new File(args[1], fileName);
+                if(file.exists()) {
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+
+                    String line;
+                    StringBuilder fileData = new StringBuilder();
+                    while ((line = reader.readLine()) != null) {
+                        fileData.append(line);
+                    }
+                    reader.close();
+
+                    String response = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + fileData.length() + "\r\n\r\n" + fileData.toString();
+                    outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+                }else
+                    outputStream.write(HTTP_NotFound_Response.getBytes(StandardCharsets.UTF_8));
             } else if (URLS.checkUrl(urlPath) != null)
                 outputStream.write(HTTP_OK_Response.getBytes(StandardCharsets.UTF_8));
             else
@@ -98,6 +116,7 @@ public class ClientHandler extends Thread {
      */
     public enum URLS {
         ECHO_PAGE("/echo"),
+        FILES("/files"),
         HOME_PAGE("/"),
         HOME_PAGE_1(""),
         USER_AGENT("/user-agent");

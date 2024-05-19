@@ -25,7 +25,7 @@ public class Main {
        while(true){
            Socket clientSocket = serverSocket.accept(); // Wait for connection from client.
            System.out.println("accepted new connection");
-           ClientHandler clientHandler = new ClientHandler(clientSocket);
+           ClientHandler clientHandler = new ClientHandler(clientSocket, args);
            executorService.execute(clientHandler);
        }
 
