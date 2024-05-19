@@ -40,44 +40,4 @@ public class Main {
      }
   }
 
-
-  /*
-    Extacting and reading the header data of each request
-   */
-  private static HashMap<String, String> headerDataFromRequest(InputStream inputStream){
-      String rawheaderData = "";
-      String[] headerDataInParts = null;
-      try{
-          int c;
-          Reader reader = new InputStreamReader(inputStream);
-          while((c = reader.read()) != -1){
-              System.out.print((char)c);
-              rawheaderData += (char)c;
-              if(rawheaderData.contains("\r\n\r\n"))
-                  break;
-          }
-          //Reading the headers of a request and extracting the method, url-path & http version
-          headerDataInParts = rawheaderData.split("\n");
-
-          HashMap<String, String> HeaderData = new HashMap<>();
-          for(int i = 0; i < headerDataInParts.length; i++){
-              if(headerDataInParts[i].length() > 1){
-                  HeaderData.put(
-                          headerDataInParts[i].split(" ")[0],
-                          headerDataInParts[i].split(" ")[1]
-                  );
-              }
-          }
-
-          if(HeaderData.size() > 0)
-              return HeaderData;
-          else throw new NullPointerException("Error while parsing header data from request");
-      }catch(NullPointerException nullEx){
-          System.out.println("Exception occurred :: " + nullEx);
-      }catch(Exception ex){
-          System.out.println("Exception occurred :: " + ex);
-      }
-      return null;
-  }
-
 }

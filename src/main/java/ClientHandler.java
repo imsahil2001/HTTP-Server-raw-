@@ -46,7 +46,9 @@ public class ClientHandler extends Thread {
 
             outputStream.flush();
             clientSocket.close();
-        } catch (Exception ex) {
+        } catch (NullPointerException nullEx) {
+            System.out.println("Not received thorough request data");
+        }catch (Exception ex) {
             System.out.println("Exception occured while parsing client request"+ ex);
         }
     }
