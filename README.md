@@ -17,7 +17,7 @@ So here comes the actual stuff!
 
 Follow the mentioned points to .
 
-1. Ensure you have `java (21)` installed locally
+1. Ensure you have `java (17)` installed locally to run it without any hiccups
 1. Run `./your_server.sh` from the program, which is implemented in
    `src/main/java/Main.java`.
 1. You can check the endpoints including with the methods and you will receive the proper response from the server in a format which is protocol for all servers to respond with.
